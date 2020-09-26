@@ -2,6 +2,7 @@ module ProdSum.TyCheck.CheckE
 
 import Decidable.Equality
 import Data.List
+import Data.DPair
 import Ctx
 import ProdSum.Ty
 import ProdSum.Parser
@@ -17,60 +18,60 @@ mutual
     Right (a**el) => Right (a ** Var el)
     Left ctra => Left $ NotVar ctra
   synth g (App t u) = case synth g t of
-    Right (A**n) => Left $ NotAppFA n
+    Right (A**n)          => Left $ NotAppFT n $ \ev => uninhabited $ snd $ snd ev
+    Right ((Prod _ _)**n) => Left $ NotAppFT n $ \ev => uninhabited $ snd $ snd ev
+    Right ((Sum _ _)**n)  => Left $ NotAppFT n $ \ev => uninhabited $ snd $ snd ev
     Right ((Imp a b)**n) => case inherit g u a of
       Right m => Right (b ** App n m)
       Left ctra => Left $ NotAppA n ctra
-    Right ((Prod a b)**n) => Left $ NotAppFPr n
-    Right ((Sum a b)**n) => Left $ NotAppFSu n
     Left ctra => Left $ NotAppF ctra
   synth g (Fst t) = case synth g t of
-    Right (A**n) => Left $ NotFstA n
-    Right ((Imp a b)**n) => Left $ NotFstIm n
+    Right (A**n)          => Left $ NotFstT n $ \ev => uninhabited $ snd $ snd ev
+    Right ((Imp _ _)**n)  => Left $ NotFstT n $ \ev => uninhabited $ snd $ snd ev
+    Right ((Sum _ _)**n)  => Left $ NotFstT n $ \ev => uninhabited $ snd $ snd ev
     Right ((Prod a b)**n) => Right (a**Fst n)
-    Right ((Sum a b)**n) => Left $ NotFstSu n
     Left ctra => Left $ NotFst ctra
   synth g (Snd t) = case synth g t of
-    Right (A**n) => Left $ NotSndA n
-    Right ((Imp a b)**n) => Left $ NotSndIm n
+    Right (A**n)          => Left $ NotSndT n $ \ev => uninhabited $ snd $ snd ev
+    Right ((Imp _ _)**n)  => Left $ NotSndT n $ \ev => uninhabited $ snd $ snd ev
+    Right ((Sum _ _)**n)  => Left $ NotSndT n $ \ev => uninhabited $ snd $ snd ev
     Right ((Prod a b)**n) => Right (b**Snd n)
-    Right ((Sum a b)**n) => Left $ NotSndSu n
     Left ctra => Left $ NotSnd ctra
   synth g (Cut v t) = case inherit g v t of
     Right val => Right (t ** Cut val)
     Left ctra => Left $ NotCut ctra
 
   inherit : (g : Ctx Ty) -> (m : Val) -> (a : Ty) -> Either (NotVal g m a) (Val g m a)
-  inherit _ (Lam _ _)         A         = Left NotLamA
-  inherit _ (Lam _ _)        (Prod _ _) = Left NotLamPr
-  inherit _ (Lam _ _)        (Sum _ _)  = Left NotLamSu
+  inherit _ (Lam _ _)         A         = Left $ NotLamT $ \ev => uninhabited $ snd $ snd ev
+  inherit _ (Lam _ _)        (Prod _ _) = Left $ NotLamT $ \ev => uninhabited $ snd $ snd ev
+  inherit _ (Lam _ _)        (Sum _ _)  = Left $ NotLamT $ \ev => uninhabited $ snd $ snd ev
   inherit g (Lam s v)        (Imp a b)  = case inherit ((s,a)::g) v b of
     Right w => Right $ Lam w
     Left ctra => Left $ NotLam ctra
-  inherit _ (Pair _ _)        A         = Left NotPairA
+  inherit _ (Pair _ _)        A         = Left $ NotPairT $ \ev => uninhabited $ snd $ snd ev
   inherit g (Pair l r)       (Prod a b) = case inherit g l a of
     Right x => case inherit g r b of
       Right y => Right $ Pair x y
       Left ctra => Left $ NotPairR ctra
     Left ctra => Left $ NotPairL ctra
-  inherit _ (Pair _ _)       (Sum _ _)  = Left NotPairSu
-  inherit _ (Pair _ _)       (Imp _ _)  = Left NotPairIm
-  inherit _ (Inl _)           A         = Left NotInlA
-  inherit _ (Inl _)          (Prod _ _) = Left NotInlPr
+  inherit _ (Pair _ _)       (Sum _ _)  = Left $ NotPairT $ \ev => uninhabited $ snd $ snd ev
+  inherit _ (Pair _ _)       (Imp _ _)  = Left $ NotPairT $ \ev => uninhabited $ snd $ snd ev
+  inherit _ (Inl _)           A         = Left $ NotInlT $ \ev => uninhabited $ snd $ snd ev
+  inherit _ (Inl _)          (Prod _ _) = Left $ NotInlT $ \ev => uninhabited $ snd $ snd ev
   inherit g (Inl l)          (Sum a _)  = case inherit g l a of
     Right x => Right $ Inl x
     Left ctra => Left $ NotInl ctra
-  inherit _ (Inl _)          (Imp _ _)  = Left NotInlIm
-  inherit _ (Inr _)           A         = Left NotInrA
-  inherit _ (Inr _)          (Prod _ _) = Left NotInrPr
+  inherit _ (Inl _)          (Imp _ _)  = Left $ NotInlT $ \ev => uninhabited $ snd $ snd ev
+  inherit _ (Inr _)           A         = Left $ NotInrT $ \ev => uninhabited $ snd $ snd ev
+  inherit _ (Inr _)          (Prod _ _) = Left $ NotInrT $ \ev => uninhabited $ snd $ snd ev
   inherit g (Inr r)          (Sum _ b)  = case inherit g r b of
     Right y => Right $ Inr y
     Left ctra => Left $ NotInr ctra
-  inherit _ (Inr _)          (Imp _ _)  = Left NotInrIm
+  inherit _ (Inr _)          (Imp _ _)  = Left $ NotInrT $ \ev => uninhabited $ snd $ snd ev
   inherit g (Case c x l y r)  t         = case synth g c of
-    Right (A        ** n) => Left $ NotCaseA n
-    Right (Imp _ _  ** n) => Left $ NotCaseIm n
-    Right (Prod _ _ ** n) => Left $ NotCasePr n
+    Right (A        ** n) => Left $ NotCaseT n $ \ev => uninhabited $ snd $ snd ev
+    Right (Imp _ _  ** n) => Left $ NotCaseT n $ \ev => uninhabited $ snd $ snd ev
+    Right (Prod _ _ ** n) => Left $ NotCaseT n $ \ev => uninhabited $ snd $ snd ev
     Right (Sum a b  ** n) => case inherit ((x,a)::g) l t of
       Right p => case inherit ((y,b)::g) r t of
         Right q => Right $ Case n p q
