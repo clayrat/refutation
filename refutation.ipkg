@@ -1,0 +1,14 @@
+package refutation
+
+sourcedir = src
+
+modules = Ctx
+        , ProdSum.Ty
+        , ProdSum.Term
+        , ProdSum.Parser
+        , ProdSum.TyCheck.Term
+        , ProdSum.TyCheck.Check
+        , ProdSum.TyCheck.NotTerm
+        , ProdSum.TyCheck.CheckE
+
+pkgs = contrib
