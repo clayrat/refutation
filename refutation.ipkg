@@ -3,12 +3,13 @@ package refutation
 sourcedir = src
 
 modules = Ctx
+        , Parse
         , ProdSum.Ty
         , ProdSum.Term
         , ProdSum.Parser
         , ProdSum.TyCheck.Term
-        , ProdSum.TyCheck.Check
+        , ProdSum.TyCheck.Chk0
         , ProdSum.TyCheck.NotTerm
-        , ProdSum.TyCheck.CheckE
+        , ProdSum.TyCheck.Chk
 
 pkgs = contrib

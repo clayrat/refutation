@@ -1,4 +1,4 @@
-module ProdSum.TyCheck.Check
+module ProdSum.TyCheck.Chk0
 
 import Decidable.Equality
 import Data.List
@@ -9,10 +9,6 @@ import ProdSum.Term
 import ProdSum.TyCheck.Term
 
 %default total
-
---data Dec0 : Type -> Type where
---  Yes0 : a -> Dec0 a
---  No0  : ((0 _ : a) -> Void) -> Dec0 a
 
 mutual
   synth : (g : Ctx Ty) -> (n : Neu) -> Dec (a ** Neu g n a)

@@ -3,24 +3,12 @@ module ProdSum.Parser
 import Control.Monad.Identity
 import Data.String.Parser
 import Data.String.Parser.Expression
+import Parse
 import ProdSum.Ty
 
 %default covering
 
--- TODO add to Data.String.Parser
--- reexport Control.Monad.Identity
-
--- fix `spaces` instead
-covering
-spaces1 : Monad m => ParseT m ()
-spaces1 = skip (some space) <?> "white space"
-
-export
-covering
-takeWhile1 : Monad m => (Char -> Bool) -> ParseT m String
-takeWhile1 f = pack <$> some (satisfy f)
-
--- type parsing
+-- raw terms
 
 mutual
   public export
@@ -37,6 +25,8 @@ mutual
            | Fst Neu
            | Snd Neu
            | Cut Val Ty
+
+-- type parsing
 
 table : OperatorTable Ty
 table =

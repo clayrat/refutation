@@ -1,4 +1,4 @@
-module ProdSum.TyCheck.CheckE
+module ProdSum.TyCheck.Chk
 
 import Decidable.Equality
 import Data.List
