@@ -2,6 +2,8 @@ module ProdSum.TyCheck.CheckE
 
 import Decidable.Equality
 import Data.List
+import Data.String.Parser
+import Control.Monad.Identity
 import Ctx
 import ProdSum.Ty
 import ProdSum.Parser
@@ -99,22 +101,16 @@ mutual
   neu2Term (Cut v)   = val2Term v
   neu2Term (App t u) = App (neu2Term t) (val2Term u)
 
-{-
-parseCheckTerm : String -> Either Error (a ** Term [] a)
-parseCheckTerm s = do b <- parseNeu s
+covering
+parseCheckTerm : String -> Either String (a ** Term [] a)
+parseCheckTerm s = do (b,_) <- parse (neu <* eos) s
                       case synth [] b of
                         Right (a ** n) => Right (a ** neu2Term n)
-                        Left _ => Left $ TypeError ""
+                        Left e => Left $ show e
 
-private
-test0 : parseCheckTerm "(\\x.x : *->*)" = Right (TestTy ** ResultTm)
-test0 = Refl
-
---private
---test1 : parseCheckTerm "(\\x.x : ((*->*)->(*->*))->((*->*)->(*->*))) (\\x.x) (\\x.x)" = Right (TestTy ** TestTm1)
---test1 = Refl
-
---private
---test2 : parseCheckTerm "(\\x.x : ((*->*)->(*->*))) ((\\x.x : (*->*)->(*->*)) (\\x.x))" = Right (TestTy ** TestTm2)
---test2 = Refl
+{-
+"(\\x.x : 1->1)" ~ (Imp A A ** Lam $ Var Here)
+"(\\x.x : ((1->1)->(1->1))->((1->1)->(1->1))) (\\x.x) (\\x.x)" ~ (Imp A A ** App (App (Lam $ Var Here) (Lam $ Var Here)) (Lam $ Var Here)))
+"(\\x.x : ((1->1)->(1->1))) ((\\x.x : (1->1)->(1->1)) (\\x.x))" ~ (Imp A A ** App (Lam $ Var Here) (App (Lam $ Var Here) (Lam $ Var Here))))
+"(\\x._1 x : (1->1)*(1->1)->(1->1)) (<\\x.x, \\x.x>)" ~ (Imp A A ** App (Lam $ Fst $ Var Here) (Pair (Lam $ Var Here) (Lam $ Var Here)))
 -}

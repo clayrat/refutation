@@ -16,40 +16,40 @@ NotBi t bt = {0 x, y : Ty} -> Not (t = bt x y)
 mutual
   public export
   data NotVal : Ctx Ty -> Val -> Ty -> Type where
-    NotLamT   : NotBi t Imp           -> NotVal g (Lam s v)  t
-    NotLam    : NotVal ((s,a)::g) v b -> NotVal g (Lam s v) (a~>b)
+    NotLamT   : {t : Ty} -> NotBi t Imp -> NotVal g (Lam s v)  t
+    NotLam    : NotVal ((s,a)::g) v b   -> NotVal g (Lam s v) (a~>b)
 
-    NotPairT  : NotBi t Prod -> NotVal g (Pair l r)  t
-    NotPairL  : NotVal g l a -> NotVal g (Pair l r) (Prod a b)
-    NotPairR  : NotVal g r b -> NotVal g (Pair l r) (Prod a b)
+    NotPairT  : {t : Ty} -> NotBi t Prod -> NotVal g (Pair l r)  t
+    NotPairL  : NotVal g l a             -> NotVal g (Pair l r) (Prod a b)
+    NotPairR  : NotVal g r b             -> NotVal g (Pair l r) (Prod a b)
 
-    NotInlT   : NotBi t Sum  -> NotVal g (Inl l)  t
-    NotInl    : NotVal g l a -> NotVal g (Inl l) (Sum a b)
+    NotInlT   : {t : Ty} -> NotBi t Sum -> NotVal g (Inl l)  t
+    NotInl    : NotVal g l a            -> NotVal g (Inl l) (Sum a b)
 
-    NotInrT   : NotBi t Sum  -> NotVal g (Inr r)  t
-    NotInr    : NotVal g r b -> NotVal g (Inr r) (Sum a b)
+    NotInrT   : {t : Ty} -> NotBi t Sum -> NotVal g (Inr r)  t
+    NotInr    : NotVal g r b            -> NotVal g (Inr r) (Sum a b)
 
-    NotCaseT   : Neu g c q -> NotBi q Sum                   -> NotVal g (Case c x l y r) t
+    NotCaseT   : {q : Ty} -> Neu g c q -> NotBi q Sum       -> NotVal g (Case c x l y r) t
     NotCaseL   : Neu g c (Sum a b) -> NotVal ((x,a)::g) l t -> NotVal g (Case c x l y r) t
     NotCaseR   : Neu g c (Sum a b) -> NotVal ((y,b)::g) r t -> NotVal g (Case c x l y r) t
     NotCase    : NotNeu g c                                 -> NotVal g (Case c x l y r) t
 
-    NotEmb   : NotNeu g m               -> NotVal g (Emb m) a
-    NotEmbQ  : Neu g m a -> Not (a = b) -> NotVal g (Emb m) b
+    NotEmb   : NotNeu g m                              -> NotVal g (Emb m) a
+    NotEmbQ  : {a, b : Ty} -> Neu g m a -> Not (a = b) -> NotVal g (Emb m) b
 
   public export
   data NotNeu : Ctx Ty -> Neu -> Type where
-    NotVar    : NotInCtx g s -> NotNeu g (Var s)
+    NotVar    : {s : String} -> {g : Ctx Ty} -> NotInCtx g s -> NotNeu g (Var s)
 
-    NotFstT   : Neu g n q -> NotBi q Prod -> NotNeu g (Fst n)
-    NotFst    : NotNeu g n                -> NotNeu g (Fst n)
+    NotFstT   : {q : Ty} -> Neu g n q -> NotBi q Prod -> NotNeu g (Fst n)
+    NotFst    : NotNeu g n                            -> NotNeu g (Fst n)
 
-    NotSndT   : Neu g n q -> NotBi q Prod -> NotNeu g (Snd n)
-    NotSnd    : NotNeu g n                -> NotNeu g (Snd n)
+    NotSndT   : {q : Ty} -> Neu g n q -> NotBi q Prod -> NotNeu g (Snd n)
+    NotSnd    : NotNeu g n                            -> NotNeu g (Snd n)
 
-    NotAppF   : NotNeu g l                     -> NotNeu g (App l m)
-    NotAppFT  : Neu g l q -> NotBi q Imp       -> NotNeu g (App l m)
-    NotAppA   : Neu g l (a~>b) -> NotVal g m a -> NotNeu g (App l m)
+    NotAppF   : NotNeu g l                           -> NotNeu g (App l m)
+    NotAppFT  : {q : Ty} -> Neu g l q -> NotBi q Imp -> NotNeu g (App l m)
+    NotAppA   : Neu g l (a~>b) -> NotVal g m a       -> NotNeu g (App l m)
 
     NotCut    : NotVal g m a -> NotNeu g (Cut m a)
 
@@ -95,3 +95,34 @@ mutual
   neuNot (NotSnd nn)       (Snd n)    = neuNot nn n
 
   neuNot (NotCut nv)       (Cut v)    = valNot nv v
+
+mutual
+  export
+  Show (NotVal g m a) where
+    show (NotLamT {t} _)       = "Expected function type for lambda, but got " ++ show t
+    show (NotLam nv)           = show nv
+    show (NotPairT {t} _)      = "Expected product type for pair, but got " ++ show t
+    show (NotPairL nl)         = show nl
+    show (NotPairR nr)         = show nr
+    show (NotInlT {t} _)       = "Expected sum type for inl, but got " ++ show t
+    show (NotInl nv)           = show nv
+    show (NotInrT {t} _)       = "Expected sum type for inr, but got " ++ show t
+    show (NotInr nv)           = show nv
+    show (NotCaseT {q} _ _)    = "Expected sum type for case head, but got " ++ show q
+    show (NotCaseL _ nv)       = show nv
+    show (NotCaseR _ nv)       = show nv
+    show (NotCase nn)          = show nn
+    show (NotEmb nn)           = show nn
+    show (NotEmbQ {a} {b} _ _) = "Expected " ++ show a ++ ", but got " ++ show b
+
+  export
+  Show (NotNeu g m) where
+    show (NotVar {s} {g} _) = "Variable " ++ s ++ " not found in context " ++ show (fst <$> g)
+    show (NotAppF nn)       = show nn
+    show (NotAppFT {q} _ _) = "Expected function type for application head, but got " ++ show q
+    show (NotAppA _ nv)     = show nv
+    show (NotFstT {q} _ _)  = "Expected product type for fst, but got " ++ show q
+    show (NotFst nn)        = show nn
+    show (NotSndT {q} _ _)  = "Expected product type for snd, but got " ++ show q
+    show (NotSnd nn)        = show nn
+    show (NotCut nv)        = show nv

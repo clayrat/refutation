@@ -101,23 +101,3 @@ mutual
   neu2Term (Snd n)   = Snd $ neu2Term n
   neu2Term (Cut v)   = val2Term v
   neu2Term (App t u) = App (neu2Term t) (val2Term u)
-
-{-
-parseCheckTerm : String -> Either Error (a ** Term [] a)
-parseCheckTerm s = do b <- parseNeu s
-                      case synth [] b of
-                        Yes (a ** n) => Right (a ** neu2Term n)
-                        No _ => Left $ TypeError ""
-
-private
-test0 : parseCheckTerm "(\\x.x : *->*)" = Right (TestTy ** ResultTm)
-test0 = Refl
-
---private
---test1 : parseCheckTerm "(\\x.x : ((*->*)->(*->*))->((*->*)->(*->*))) (\\x.x) (\\x.x)" = Right (TestTy ** TestTm1)
---test1 = Refl
-
---private
---test2 : parseCheckTerm "(\\x.x : ((*->*)->(*->*))) ((\\x.x : (*->*)->(*->*)) (\\x.x))" = Right (TestTy ** TestTm2)
---test2 = Refl
--}

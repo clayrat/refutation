@@ -13,6 +13,13 @@ public export
 (~>) = Imp
 
 export
+Show Ty where
+  show  A         = "1"
+  show (Imp a b)  = "(" ++ show a ++ "->" ++ show b ++ ")"
+  show (Prod a b) = "(" ++ show a ++ "*" ++ show b ++ ")"
+  show (Sum a b)  = "(" ++ show a ++ "+" ++ show b ++ ")"
+
+export
 Uninhabited (A = Imp _ _) where
   uninhabited Refl impossible
 
