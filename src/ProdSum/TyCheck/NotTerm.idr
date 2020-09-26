@@ -2,7 +2,6 @@ module ProdSum.TyCheck.NotTerm
 
 import Decidable.Equality
 import Data.List
-import Data.DPair
 import Ctx
 import ProdSum.Ty
 import ProdSum.Parser
@@ -12,7 +11,7 @@ import ProdSum.TyCheck.Term
 
 public export
 NotBi : Ty -> (Ty -> Ty -> Ty) -> Type
-NotBi t bt = Not (Exists $ \x => Exists $ \y => t = bt x y)
+NotBi t bt = {0 x, y : Ty} -> Not (t = bt x y)
 
 mutual
   public export
@@ -60,39 +59,39 @@ mutual
 mutual
   export
   valNot : NotVal g m a -> Val g m a -> Void
-  valNot (NotLamT ctra)    (Lam {a} {b} _)       = ctra $ Evidence a $ Evidence b Refl
-  valNot (NotLam nv)       (Lam v)               = valNot nv v
+  valNot (NotLamT ctra)    (Lam _)       = ctra Refl
+  valNot (NotLam nv)       (Lam v)       = valNot nv v
 
-  valNot (NotPairT ctra)   (Pair {a} {b} _ _)    = ctra $ Evidence a $ Evidence b Refl
-  valNot (NotPairL nl)     (Pair l _)            = valNot nl l
-  valNot (NotPairR nr)     (Pair _ r)            = valNot nr r
+  valNot (NotPairT ctra)   (Pair _ _)    = ctra Refl
+  valNot (NotPairL nl)     (Pair l _)    = valNot nl l
+  valNot (NotPairR nr)     (Pair _ r)    = valNot nr r
 
-  valNot (NotInlT ctra)    (Inl {a} {b} _)       = ctra $ Evidence a $ Evidence b Refl
-  valNot (NotInl nv)       (Inl v)               = valNot nv v
+  valNot (NotInlT ctra)    (Inl _)       = ctra Refl
+  valNot (NotInl nv)       (Inl v)       = valNot nv v
 
-  valNot (NotInrT ctra)    (Inr {a} {b} _)       = ctra $ Evidence a $ Evidence b Refl
-  valNot (NotInr nv)       (Inr v)               = valNot nv v
+  valNot (NotInrT ctra)    (Inr _)       = ctra Refl
+  valNot (NotInr nv)       (Inr v)       = valNot nv v
 
-  valNot (NotCaseT n ctra) (Case {a} {b} n0 _ _) = ctra $ Evidence a $ Evidence b $ neuUniq n n0
-  valNot (NotCaseL n0 nv)   v                    = notLeft n0 (valNot nv) v
-  valNot (NotCaseR n0 nv)   v                    = notRight n0 (valNot nv) v
-  valNot (NotCase nn)      (Case n0 _ _)         = neuNot nn n0
+  valNot (NotCaseT n ctra) (Case n0 _ _) = ctra $ neuUniq n n0
+  valNot (NotCaseL n0 nv)   v            = notLeft n0 (valNot nv) v
+  valNot (NotCaseR n0 nv)   v            = notRight n0 (valNot nv) v
+  valNot (NotCase nn)      (Case n0 _ _) = neuNot nn n0
 
-  valNot (NotEmb nn)       (Emb n Refl)          = neuNot nn n
-  valNot (NotEmbQ n neq)    v                    = notSwitch n neq v
+  valNot (NotEmb nn)       (Emb n Refl)  = neuNot nn n
+  valNot (NotEmbQ n neq)    v            = notSwitch n neq v
 
   export
   neuNot : NotNeu g m -> Neu g m a -> Void
-  neuNot (NotVar nc)       (Var c)            = notInCtx nc c
+  neuNot (NotVar nc)       (Var c)    = notInCtx nc c
 
-  neuNot (NotAppF nn)      (App n _)          = neuNot nn n
-  neuNot (NotAppFT n ctra) (App {a} {b} n0 _) = ctra $ Evidence a $ Evidence b $ neuUniq n n0
-  neuNot (NotAppA n0 nv)    tn                = notArg n0 (valNot nv) tn
+  neuNot (NotAppF nn)      (App n _)  = neuNot nn n
+  neuNot (NotAppFT n ctra) (App n0 _) = ctra $ neuUniq n n0
+  neuNot (NotAppA n0 nv)    tn        = notArg n0 (valNot nv) tn
 
-  neuNot (NotFstT n ctra)  (Fst {a} {b} n0)   = ctra $ Evidence a $ Evidence b $ neuUniq n n0
-  neuNot (NotFst nn)       (Fst n)            = neuNot nn n
+  neuNot (NotFstT n ctra)  (Fst n0)   = ctra $ neuUniq n n0
+  neuNot (NotFst nn)       (Fst n)    = neuNot nn n
 
-  neuNot (NotSndT n ctra)  (Snd {a} {b} n0)   = ctra $ Evidence a $ Evidence b $ neuUniq n n0
-  neuNot (NotSnd nn)       (Snd n)            = neuNot nn n
+  neuNot (NotSndT n ctra)  (Snd n0)   = ctra $ neuUniq n n0
+  neuNot (NotSnd nn)       (Snd n)    = neuNot nn n
 
-  neuNot (NotCut nv)       (Cut v)            = valNot nv v
+  neuNot (NotCut nv)       (Cut v)    = valNot nv v
