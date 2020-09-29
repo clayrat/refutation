@@ -4,12 +4,19 @@ sourcedir = src
 
 modules = Ctx
         , Parse
+
         , ProdSum.Ty
         , ProdSum.Term
         , ProdSum.Parser
         , ProdSum.TyCheck.Term
-        , ProdSum.TyCheck.Chk0
         , ProdSum.TyCheck.NotTerm
         , ProdSum.TyCheck.Chk
+
+        , ProdLet.Ty
+        , ProdLet.Term
+        , ProdLet.Parser
+        , ProdLet.TyCheck.Term
+        , ProdLet.TyCheck.NotTerm
+        , ProdLet.TyCheck.Chk
 
 pkgs = contrib

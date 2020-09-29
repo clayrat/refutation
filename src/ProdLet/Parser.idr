@@ -1,10 +1,10 @@
-module ProdSum.Parser
+module ProdLet.Parser
 
 import Control.Monad.Identity
 import Data.String.Parser
 import Data.String.Parser.Expression
 import Parse
-import ProdSum.Ty
+import ProdLet.Ty
 
 %default covering
 
@@ -13,17 +13,14 @@ import ProdSum.Ty
 mutual
   public export
   data Val = Lam  String Val
+           | TT
            | Pair Val Val
-           | Inl  Val
-           | Inr  Val
-           | Case Neu String Val String Val
+           | LetP Neu String String Val
            | Emb  Neu
 
   public export
   data Neu = Var String
            | App Neu Val
-           | Fst Neu
-           | Snd Neu
            | Cut Val Ty
 
 -- type parsing
@@ -31,13 +28,12 @@ mutual
 table : OperatorTable Ty
 table =
   [ [ Infix (token "*"  $> Prod) AssocLeft  ]
-  , [ Infix (token "+"  $> Sum ) AssocLeft  ]
   , [ Infix (token "->" $> Imp ) AssocRight ]
   ]
 
 mutual
   base : Parser Ty
-  base = lexeme ((char '1' $> A) <|> (parens ty))
+  base = lexeme ((char '1' $> U) <|> (parens ty))
          <?> "type expression"
 
   ty : Parser Ty
@@ -56,45 +52,35 @@ mutual
   cut = map (uncurry Cut) $
         parens $ [| (lexeme val, token ":" *> ty) |]
 
-  fst : Parser Neu
-  fst = Fst <$> (token "_1" *> neu)
-
-  snd : Parser Neu
-  snd = Snd <$> (token "_2" *> neu)
-
   arg : Parser Val
   arg = (Emb <$> var) <|> parens val
 
   export
   neu : Parser Neu
-  neu = hchainl (choice [var, cut, fst, snd, parens neu])
-                (spaces1 $> App)
+  neu = hchainl (choice [var, cut, parens neu])
+                (spaces $> App)
                 arg
 
   lam : Parser Val
   lam = map (uncurry Lam) $
         [| (token "\\" *> name, token "." *> val) |]
 
+  tt : Parser Val
+  tt = TT <$ (token "TT")
+
   pair : Parser Val
   pair = map (uncurry Pair) $
          char '(' *> [| (lexeme val, token "," *> val) |] <* char ')'
 
-  inl : Parser Val
-  inl = Inl <$> (token "_L" *> val)
-
-  inr : Parser Val
-  inr = Inr <$> (token "_R" *> val)
-
-  cas : Parser Val
-  cas = map (\(n,x,l,y,r) => Case n x l y r) $
-        [| ( token "CASE" *> lexeme neu <* token "OF"
-           , [| ( token "L" *> lexeme name <* token "."
-                , [| ( lexeme val <* token "|"
-                     , [| ( token "R" *> lexeme name <* token "."
-                          , lexeme val) |] ) |] ) |] ) |]
+  letp : Parser Val
+  letp = map (\(x,y,n,v) => LetP n x y v) $
+         [| ( token "LETP" *> token "(" *> lexeme name
+            , [| ( token "," *> lexeme name
+                 , [| ( token ")" *> lexeme neu
+                      , token "IN" *> lexeme val) |] ) |] ) |]
 
   emb : Parser Val
   emb = Emb <$> neu
 
   val : Parser Val
-  val = choice [ lam, pair, inl, inr, cas, emb, parens val ]
+  val = choice [lam, tt, pair, letp, emb, parens val]

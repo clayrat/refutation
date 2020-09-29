@@ -4,6 +4,7 @@ import Decidable.Equality
 import Data.List
 import Ctx
 import ProdSum.Ty
+import ProdSum.Term
 import ProdSum.Parser
 
 %default total
@@ -105,3 +106,21 @@ notSwitch : Neu g n a -> Not (a = b) -> Not (Val g (Emb n) b)
 notSwitch n neq (Emb v eq) =
   case neuUniq n v of
     Refl => neq eq
+
+mutual
+  export
+  val2Term : Val g m a -> Term (eraseCtx g) a
+  val2Term (Lam v)      = Lam $ val2Term v
+  val2Term (Pair l r)   = Pair (val2Term l) (val2Term r)
+  val2Term (Inl l)      = Inl $ val2Term l
+  val2Term (Inr r)      = Inr $ val2Term r
+  val2Term (Case n l r) = Case (neu2Term n) (val2Term l) (val2Term r)
+  val2Term (Emb v Refl) = neu2Term v
+
+  export
+  neu2Term : Neu g n a -> Term (eraseCtx g) a
+  neu2Term (Var i)   = Var $ eraseInCtx i
+  neu2Term (Fst n)   = Fst $ neu2Term n
+  neu2Term (Snd n)   = Snd $ neu2Term n
+  neu2Term (Cut v)   = val2Term v
+  neu2Term (App t u) = App (neu2Term t) (val2Term u)
