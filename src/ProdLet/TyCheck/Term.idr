@@ -52,9 +52,9 @@ Uninhabited (Val _ (Pair _ _) (Imp _ _)) where
 
 export
 neuUniq : Neu g n a -> Neu g n b -> a = b
-neuUniq (Var i1)       (Var i2)       = inCtxUniq i1 i2
-neuUniq (App t1 _)     (App t2 _)     = snd $ impInj $ neuUniq t1 t2
-neuUniq (Cut v1)       (Cut v2)       = Refl
+neuUniq (Var i1)   (Var i2)       = inCtxUniq i1 i2
+neuUniq (App t1 _) (App t2 _)     = snd $ impInj $ neuUniq t1 t2
+neuUniq (Cut v1)   (Cut v2)       = Refl
 
 export
 notArg0 : Neu g n (a~>b) -> Not (Val g m a) -> Not (c ** Neu g (App n m) c)

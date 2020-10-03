@@ -74,10 +74,10 @@ mutual
 
   letp : Parser Val
   letp = map (\(x,y,n,v) => LetP n x y v) $
-         [| ( token "LETP" *> token "(" *> lexeme name
-            , [| ( token "," *> lexeme name
-                 , [| ( token ")" *> lexeme neu
-                      , token "IN" *> lexeme val) |] ) |] ) |]
+         [| (,,,) (token "LETP" *> token "(" *> lexeme name)
+                  (token "," *> lexeme name)
+                  (token ")" *> lexeme neu)
+                  (token "IN" *> lexeme val) |]
 
   emb : Parser Val
   emb = Emb <$> neu

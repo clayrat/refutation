@@ -68,7 +68,7 @@ mutual
   export
   neu : Parser Neu
   neu = hchainl (choice [var, cut, fst, snd, parens neu])
-                (spaces1 $> App)
+                (spaces $> App)
                 arg
 
   lam : Parser Val
@@ -87,11 +87,11 @@ mutual
 
   cas : Parser Val
   cas = map (\(n,x,l,y,r) => Case n x l y r) $
-        [| ( token "CASE" *> lexeme neu <* token "OF"
-           , [| ( token "L" *> lexeme name <* token "."
-                , [| ( lexeme val <* token "|"
-                     , [| ( token "R" *> lexeme name <* token "."
-                          , lexeme val) |] ) |] ) |] ) |]
+        [| (,,,,) (token "CASE" *> lexeme neu <* token "OF")
+                  (token "L" *> lexeme name <* token ".")
+                  (lexeme val <* token "|")
+                  (token "R" *> lexeme name <* token ".")
+                  (lexeme val) |]
 
   emb : Parser Val
   emb = Emb <$> neu
