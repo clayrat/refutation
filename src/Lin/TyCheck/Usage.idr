@@ -14,14 +14,18 @@ data Usage : t -> Type where
   Fr : (x : t) -> Usage x
   St : (x : t) -> Usage x
 
+export
+Uninhabited (Fr x = St x) where
+  uninhabited Refl impossible
+
 public export
 Usages : List t -> Type
 Usages = All Usage
 
 public export
-data InCtxLO : {ctx : Ctx Ty} -> Usages ctx -> String -> Ty -> Usages ctx -> Type where
-  Here : InCtxLO (Fr (x,a)::g) x a (St (x,a)::d)
-  There : Not (x=y) -> InCtxLO {ctx} g x a d -> InCtxLO {ctx=(y,b)::ctx} (u::g) x a (u::d)
+data InCtxLO : {0 ctx : Ctx Ty} -> Usages ctx -> String -> Ty -> Usages ctx -> Type where
+  Here  :                                       InCtxLO                  (Fr (x,a)::g) x a (St (x,a)::g)
+  There : Not (x=y) -> InCtxLO {ctx} g x a d -> InCtxLO {ctx=(y,b)::ctx} (u       ::g) x a (u       ::d)
 
 Uninhabited (InCtxLO [] x a d) where
   uninhabited Here impossible
@@ -29,7 +33,7 @@ Uninhabited (InCtxLO [] x a d) where
 
 Uninhabited (InCtxLO (St (x,a)::g) x b d) where
   uninhabited Here impossible
-  uninhabited (There n el) = n Refl
+  uninhabited (There n _) = n Refl
 
 Uninhabited (InCtxLO (St (y,b)::g) x a (Fr (y,b)::d)) where
   uninhabited Here impossible
@@ -58,9 +62,9 @@ lookupLO (St (y,b)::g) x with (decEq x y)
     lookupLO (St (y,b)::g) x | No ctra | No ctra2 = No $ nowhereLOS ctra ctra2
 
 export
-inCtxLOUniq : InCtxLO g s a d1 -> InCtxLO g s b d2 -> a = b
-inCtxLOUniq  Here           Here          = Refl
-inCtxLOUniq  Here          (There neq2 _) = absurd $ neq2 Refl
-inCtxLOUniq (There neq1 _)  Here          = absurd $ neq1 Refl
-inCtxLOUniq (There _ i1)   (There _ i2)   = inCtxLOUniq i1 i2
-
+inCtxLOUniq : InCtxLO g s a d1 -> InCtxLO g s b d2 -> (a = b, d1 = d2)
+inCtxLOUniq  Here             Here          = (Refl, Refl)
+inCtxLOUniq  Here            (There neq2 _) = absurd $ neq2 Refl
+inCtxLOUniq (There neq1 _)    Here          = absurd $ neq1 Refl
+inCtxLOUniq (There {u} _ i1) (There _ i2)   = let (prft, prfc) = inCtxLOUniq i1 i2 in
+                                              (prft, cong (u::) prfc)
