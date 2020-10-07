@@ -2,12 +2,12 @@ module Lin.TyCheck.TermLO
 
 import Data.List.Quantifiers
 import Decidable.Equality
---import Split
+import Quantifiers
 import Ctx
 import ProdLet.Ty
+import Lin.Usage.Ctx
 import Lin.Parser
---import Lin.Term
-import Lin.TyCheck.Usage
+import Lin.TermLO
 
 %default total
 
@@ -55,14 +55,6 @@ export
 Uninhabited (Val g (Pair _ _) (Imp _ _) d) where
   uninhabited (Pair _ _) impossible
 
--- TODO contribute
-
-export
-allConsInjective : {0 x, y : a} ->
-                   {0 px : p x} -> {0 pxs : All p xs} -> {0 py : p y} -> {0 pys : All p ys} ->
-                   the (All p (x::xs)) (px :: pxs) = the (All p (y::ys)) (py :: pys) -> (px=py, pxs=pys)
-allConsInjective Refl = (Refl, Refl)
-
 mutual
   export
   neuUniq : Neu g n a d1 -> Neu g n b d2 -> (a = b, d1 = d2)
@@ -88,3 +80,48 @@ mutual
     case (prodInj prft, prfc) of
       ((Refl, Refl), Refl) => snd $ allConsInjective $ snd $ allConsInjective $ valUniq v1 v2
   valUniq (Emb n1 Refl)    (Emb n2 Refl)    = snd $ neuUniq n1 n2
+
+export
+notArg : Neu g n (a~>b) d -> Not (Val d m a s) -> Not (Neu g (App n m) c s)
+notArg n nv (App t u) =
+  let (prft, prfc) = neuUniq n t in
+    case (fst $ impInj prft, prfc) of
+      (Refl, Refl) => nv u
+
+export
+notSwitch : Neu g n a d -> Not (b = a) -> Not (Val g (Emb n) b d)
+notSwitch n neq (Emb v eq) =
+  case fst $ neuUniq n v of
+    Refl => neq (sym eq)
+
+export
+notLetT : Neu g n U d -> Not (Val d v c s) -> Not (Val g (LetT n v) c s)
+notLetT n nv (LetT n0 v0) =
+  nv $ rewrite snd $ neuUniq n n0 in v0
+
+export
+notLetP : Neu g n (Prod a b) d -> Not (Val (Fr (y,b)::Fr (x,a)::d) v c (St (y,b)::St (x,a)::s)) -> Not (Val g (LetP n x y v) c s)
+notLetP n nv (LetP n0 v0) =
+  let (prft, prfc) = neuUniq n n0
+      (prf1, prf2) = prodInj prft
+   in
+  nv $ rewrite prf1 in
+       rewrite prf2 in
+       rewrite prfc in
+       v0
+
+mutual
+  export
+  val2Term : Val g m a d -> Term (eraseCtxLO g) a (eraseCtxLO d)
+  val2Term (Lam v)      = Lam $ val2Term v
+  val2Term  TT          = TT
+  val2Term (LetT n v)   = LetT (neu2Term n) (val2Term v)
+  val2Term (Pair l r)   = Pair (val2Term l) (val2Term r)
+  val2Term (LetP n v)   = LetP (neu2Term n) (val2Term v)
+  val2Term (Emb v Refl) = assert_total $ neu2Term v
+
+  export
+  neu2Term : Neu g n a d -> Term (eraseCtxLO g) a (eraseCtxLO d)
+  neu2Term (Var i)   = Var $ eraseInCtxLO i
+  neu2Term (App t u) = App (neu2Term t) (val2Term u)
+  neu2Term (Cut v)   = assert_total $ val2Term v

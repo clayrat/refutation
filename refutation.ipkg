@@ -19,4 +19,12 @@ modules = Ctx
         , ProdLet.TyCheck.NotTerm
         , ProdLet.TyCheck.Chk
 
+        , Lin.Usage
+        , Lin.TermLO
+        , Lin.Parser
+        , Lin.Usage.Ctx
+        , Lin.TyCheck.TermLO
+        , Lin.TyCheck.NotTermLO
+        , Lin.TyCheck.Chk
+
 pkgs = contrib

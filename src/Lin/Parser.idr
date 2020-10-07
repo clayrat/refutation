@@ -87,5 +87,6 @@ mutual
   emb : Parser Val
   emb = Emb <$> neu
 
+  export
   val : Parser Val
   val = choice [lam, tt, lett, pair, letp, emb, parens val]
