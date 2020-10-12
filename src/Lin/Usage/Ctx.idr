@@ -24,6 +24,11 @@ Uninhabited (InCtxLO (St (y,b)::g) x a (Fr (y,b)::d)) where
   uninhabited Here impossible
   uninhabited (There _ _) impossible
 
+export
+inCtxLOConsumption : {s : String} -> {a : t} -> {g : Usages l} -> InCtxLO g s a d -> OPE g d
+inCtxLOConsumption {g=Fr (s,a)::g}  Here       = Cons (s,a) $ opeRefl g
+inCtxLOConsumption                 (There _ i) = Skip $ inCtxLOConsumption i
+
 public export
 data NotInCtxLO : {0 ctx : Ctx t} -> Usages ctx -> String -> Type where
   NNil  : {x : String} -> NotInCtxLO [] x
