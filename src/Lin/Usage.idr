@@ -3,6 +3,7 @@ module Lin.Usage
 import public Data.List.Quantifiers
 import Decidable.Equality
 import Quantifiers
+import Split
 
 %default total
 
@@ -40,6 +41,13 @@ opeRefl []      = Nil
 opeRefl (u::us) = Skip $ opeRefl us
 
 export
+opeTrans : OPE g d -> OPE d s -> OPE g s
+opeTrans  Nil        Nil       = Nil
+opeTrans (Skip p)   (Skip q)   = Skip $ opeTrans p q
+opeTrans (Cons a p) (Skip q)   = Cons a $ opeTrans p q
+opeTrans (Skip p)   (Cons a q) = Cons a $ opeTrans p q
+
+export
 opeTail : OPE (a::g) (b::d) -> OPE g d
 opeTail (Skip o)   = o
 opeTail (Cons x o) = o
@@ -55,3 +63,10 @@ export
 usedRefl : (o : OPE g g) -> used o = []
 usedRefl  Nil     = Refl
 usedRefl (Skip o) = usedRefl o
+
+export
+usedDivide : (pq : OPE g s) -> (p : OPE g d) -> (q : OPE d s) -> Split (used pq) (used p) (used q)
+usedDivide  Nil         Nil        Nil       = Nil
+usedDivide (Skip pq)   (Skip p)   (Skip q)   = usedDivide pq p q
+usedDivide (Cons a pq) (Skip p)   (Cons a q) = ConsR $ usedDivide pq p q
+usedDivide (Cons a pq) (Cons a p) (Skip q)   = ConsL $ usedDivide pq p q

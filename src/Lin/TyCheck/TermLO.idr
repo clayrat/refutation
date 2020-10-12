@@ -11,22 +11,28 @@ import Lin.TermLO
 
 %default total
 
+-- TODO intermediate usages are kept for opeRefl, this can be mitigated by using a nat measure instead
+-- this also propagates to neu/valConsumption and neu/val2Sp
+-- see https://github.com/idris-lang/Idris2/pull/598
 mutual
   public export
   data Val : {ctx : Ctx Ty} -> Usages ctx -> Val -> Ty -> Usages ctx -> Type where
-    Lam  : Val (Fr (s,a)::g) v b (St (s,a)::d) -> Val g (Lam s v) (a~>b) d
+    Lam  : {s : String} -> {a : Ty} ->
+           Val (Fr (s,a)::g) v b (St (s,a)::d) -> Val g (Lam s v) (a~>b) d
     TT   : Val g TT U g
     LetT : {d : Usages ctx} ->
            Neu g l U d -> Val d r a s -> Val g (LetT l r) a s
     Pair : {d : Usages ctx} ->
            Val g l a d -> Val d r b s -> Val g (Pair l r) (Prod a b) s
-    LetP : {a, b : Ty} -> {d : Usages ctx} ->
+    LetP : {x, y : String} -> {a, b : Ty} ->
+           {d : Usages ctx} ->
            Neu g l (Prod a b) d -> Val (Fr (y,b)::Fr (x,a)::d) r c (St (y,b)::St (x,a)::s) -> Val g (LetP l x y r) c s
     Emb  : Neu g m a d -> a = b -> Val g (Emb m) b d
 
   public export
   data Neu : {ctx : Ctx Ty} -> Usages ctx -> Neu -> Ty -> Usages ctx -> Type where
-    Var : InCtxLO g s a d -> Neu g (Var s) a d
+    Var : {s : String} ->
+          InCtxLO g s a d -> Neu g (Var s) a d
     App : {a : Ty} -> {d : Usages ctx} ->
           Neu g l (a~>b) d -> Val d m a s -> Neu g (App l m) b s
     Cut : Val g m a d -> Neu g (Cut m a) a d
@@ -109,6 +115,22 @@ notLetP n nv (LetP n0 v0) =
        rewrite prf2 in
        rewrite prfc in
        v0
+
+mutual
+  export
+  valConsumption : {g : Usages l} -> {a : Ty} -> Val g m a d -> OPE g d
+  valConsumption (Lam v)      = opeTail $ valConsumption v
+  valConsumption  TT          = opeRefl g
+  valConsumption (LetT n v)   = opeTrans (neuConsumption n) (valConsumption v)
+  valConsumption (Pair l r)   = opeTrans (valConsumption l) (valConsumption r)
+  valConsumption (LetP n v)   = opeTrans (neuConsumption n) (opeTail $ opeTail $ valConsumption v)
+  valConsumption (Emb v Refl) = assert_total $ neuConsumption v
+
+  export
+  neuConsumption : {g : Usages l} -> {a : Ty} -> Neu g n a d -> OPE g d
+  neuConsumption (Var i)   = inCtxLOConsumption i
+  neuConsumption (App t u) = opeTrans (neuConsumption t) (valConsumption u)
+  neuConsumption (Cut v)   = assert_total $ valConsumption v
 
 mutual
   export
