@@ -53,8 +53,8 @@ var = Var <$> name
 
 mutual
   cut : Parser Neu
-  cut = map (uncurry Cut) $
-        parens $ [| (lexeme val, token ":" *> ty) |]
+  cut = (uncurry Cut) <$>
+        (parens [| (lexeme val, token ":" *> ty) |])
 
   fst : Parser Neu
   fst = Fst <$> (token "_1" *> neu)
@@ -68,16 +68,16 @@ mutual
   export
   neu : Parser Neu
   neu = hchainl (choice [var, cut, fst, snd, parens neu])
-                (spaces $> App)
+                (spaces1 $> App)
                 arg
 
   lam : Parser Val
-  lam = map (uncurry Lam) $
-        [| (token "\\" *> name, token "." *> val) |]
+  lam = (uncurry Lam) <$>
+        [| (token "\\" *> lexeme name, token "." *> val) |]
 
   pair : Parser Val
-  pair = map (uncurry Pair) $
-         char '(' *> [| (lexeme val, token "," *> val) |] <* char ')'
+  pair = (uncurry Pair) <$>
+         (char '(' *> [| (lexeme val, token "," *> val) |] <* char ')')
 
   inl : Parser Val
   inl = Inl <$> (token "_L" *> val)
@@ -86,7 +86,7 @@ mutual
   inr = Inr <$> (token "_R" *> val)
 
   cas : Parser Val
-  cas = map (\(n,x,l,y,r) => Case n x l y r) $
+  cas = (\(n,x,l,y,r) => Case n x l y r) <$>
         [| (,,,,) (token "CASE" *> lexeme neu <* token "OF")
                   (token "L" *> lexeme name <* token ".")
                   (lexeme val <* token "|")

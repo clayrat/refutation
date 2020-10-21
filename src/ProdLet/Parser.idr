@@ -49,8 +49,8 @@ var = Var <$> name
 
 mutual
   cut : Parser Neu
-  cut = map (uncurry Cut) $
-        parens $ [| (lexeme val, token ":" *> ty) |]
+  cut = (uncurry Cut) <$>
+        (parens [| (lexeme val, token ":" *> ty) |])
 
   arg : Parser Val
   arg = (Emb <$> var) <|> parens val
@@ -58,22 +58,22 @@ mutual
   export
   neu : Parser Neu
   neu = hchainl (choice [var, cut, parens neu])
-                (spaces $> App)
+                (spaces1 $> App)
                 arg
 
   lam : Parser Val
-  lam = map (uncurry Lam) $
-        [| (token "\\" *> name, token "." *> val) |]
+  lam = (uncurry Lam) <$>
+        [| (token "\\" *> lexeme name, token "." *> val) |]
 
   tt : Parser Val
   tt = TT <$ (token "TT")
 
   pair : Parser Val
-  pair = map (uncurry Pair) $
-         char '(' *> [| (lexeme val, token "," *> val) |] <* char ')'
+  pair = (uncurry Pair) <$>
+         (char '(' *> [| (lexeme val, token "," *> val) |] <* char ')')
 
   letp : Parser Val
-  letp = map (\(x,y,n,v) => LetP n x y v) $
+  letp = (\(x,y,n,v) => LetP n x y v) <$>
          [| (,,,) (token "LETP" *> token "(" *> lexeme name)
                   (token "," *> lexeme name)
                   (token ")" *> lexeme neu)
