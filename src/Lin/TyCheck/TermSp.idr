@@ -33,21 +33,18 @@ mutual
   val2Sp (Lam {s} {a} v) o = Lam $ val2Sp v (Cons (s,a) o)
   val2Sp  TT             o = rewrite usedRefl o in TT
   val2Sp (LetT n v)      o =
-    let
-      nc = neuConsumption n
-      vc = valConsumption v
+    let nc = neuConsumption n
+        vc = valConsumption v
      in
     LetT (neu2Sp n nc) (splitMap snd $ usedDivide o nc vc) (val2Sp v vc)
   val2Sp (Pair l r)      o =
-    let
-      lc = valConsumption l
-      rc = valConsumption r
+    let lc = valConsumption l
+        rc = valConsumption r
      in
     Pair (val2Sp l lc) (splitMap snd $ usedDivide o lc rc) (val2Sp r rc)
   val2Sp (LetP n v)      o =
-    let
-      nc = neuConsumption n
-      vc'@(Cons (y,b) (Cons (x,a) vc)) = valConsumption v
+    let nc = neuConsumption n
+        vc'@(Cons (y,b) (Cons (x,a) vc)) = valConsumption v
      in
     LetP (neu2Sp n nc) (splitMap snd $ usedDivide o nc vc) (val2Sp v vc')
   val2Sp (Emb v Refl)    o = assert_total $ Emb (neu2Sp v o) Refl
@@ -56,11 +53,10 @@ mutual
   neu2Sp : {g : Usages l} -> {a : Ty} -> Neu g n a d -> (o : OPE g d) -> Neu (Builtin.snd <$> used o) a
   neu2Sp (Var  Here)        (Cons (s,a) o) = rewrite usedRefl o in Var
   neu2Sp (Var (There cp i)) (Skip       o) = neu2Sp (Var i) o
-  neu2Sp (Var (There cp i)) (Cons (y,b) o) impossible
+  neu2Sp (Var (There cp i)) (Cons (s,b) o) impossible
   neu2Sp (App t u)                      o  =
-    let
-      tc = neuConsumption t
-      uc = valConsumption u
+    let tc = neuConsumption t
+        uc = valConsumption u
      in
     App (neu2Sp t tc) (splitMap snd $ usedDivide o tc uc) (val2Sp u uc)
   neu2Sp (Cut v)                        o  = assert_total $ Cut $ val2Sp v o

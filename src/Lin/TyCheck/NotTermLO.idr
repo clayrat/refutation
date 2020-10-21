@@ -11,10 +11,6 @@ import Lin.TyCheck.TermLO
 
 %default total
 
-public export
-NotBi : Ty -> (Ty -> Ty -> Ty) -> Type
-NotBi t bt = {0 x, y : Ty} -> Not (t = bt x y)
-
 mutual
   public export
   data NotVal : {0 ctx : Ctx Ty} -> Usages ctx -> Val -> Ty -> Type where

@@ -9,10 +9,6 @@ import ProdLet.TyCheck.Term
 
 %default total
 
-public export
-NotBi : Ty -> (Ty -> Ty -> Ty) -> Type
-NotBi t bt = {0 x, y : Ty} -> Not (t = bt x y)
-
 mutual
   public export
   data NotVal : Ctx Ty -> Val -> Ty -> Type where

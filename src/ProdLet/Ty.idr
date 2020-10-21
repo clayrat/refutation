@@ -12,6 +12,10 @@ public export
 (~>) : Ty -> Ty -> Ty
 (~>) = Imp
 
+public export
+NotBi : Ty -> (Ty -> Ty -> Ty) -> Type
+NotBi t bt = {0 x, y : Ty} -> Not (t = bt x y)
+
 export
 Show Ty where
   show  U         = "1"
