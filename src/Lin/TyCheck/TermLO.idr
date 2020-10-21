@@ -5,6 +5,7 @@ import Decidable.Equality
 import Quantifiers
 import Ctx
 import ProdLet.Ty
+import Lin.Usage.OPE
 import Lin.Usage.Ctx
 import Lin.Parser
 import Lin.TermLO
@@ -16,7 +17,7 @@ import Lin.TermLO
 -- see https://github.com/idris-lang/Idris2/pull/598
 mutual
   public export
-  data Val : {ctx : Ctx Ty} -> Usages ctx -> Val -> Ty -> Usages ctx -> Type where
+  data Val : {0 ctx : Ctx Ty} -> Usages ctx -> Val -> Ty -> Usages ctx -> Type where
     Lam  : {s : String} -> {a : Ty} ->
            Val (Fr (s,a)::g) v b (St (s,a)::d) -> Val g (Lam s v) (a~>b) d
     TT   : Val g TT U g
@@ -30,7 +31,7 @@ mutual
     Emb  : Neu g m a d -> a = b -> Val g (Emb m) b d
 
   public export
-  data Neu : {ctx : Ctx Ty} -> Usages ctx -> Neu -> Ty -> Usages ctx -> Type where
+  data Neu : {0 ctx : Ctx Ty} -> Usages ctx -> Neu -> Ty -> Usages ctx -> Type where
     Var : {s : String} ->
           InCtxLO g s a d -> Neu g (Var s) a d
     App : {a : Ty} -> {d : Usages ctx} ->

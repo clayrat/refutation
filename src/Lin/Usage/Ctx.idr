@@ -4,6 +4,7 @@ import Decidable.Equality
 import Quantifiers
 import public Lin.Usage
 import Ctx
+import Lin.Usage.OPE
 
 %default total
 

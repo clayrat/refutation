@@ -17,7 +17,7 @@ NotBi t bt = {0 x, y : Ty} -> Not (t = bt x y)
 
 mutual
   public export
-  data NotVal : {ctx : Ctx Ty} -> Usages ctx -> Val -> Ty -> Type where
+  data NotVal : {0 ctx : Ctx Ty} -> Usages ctx -> Val -> Ty -> Type where
     NotLamT  : {t : Ty} -> NotBi t Imp             -> NotVal g (Lam s v)  t
     NotLamFr : {s : String} ->
                Val (Fr (s,a)::g) v b (Fr (s,a)::d) -> NotVal g (Lam s v) (a~>b)
@@ -48,7 +48,7 @@ mutual
               Neu g m a d -> Not (a = b) -> NotVal g (Emb m) b
 
   public export
-  data NotNeu : {ctx : Ctx Ty} -> Usages ctx -> Neu -> Type where
+  data NotNeu : {0 ctx : Ctx Ty} -> Usages ctx -> Neu -> Type where
     NotVar    : NotInCtxLO g s -> NotNeu g (Var s)
 
     NotAppF   : NotNeu g l                       -> NotNeu g (App l m)
