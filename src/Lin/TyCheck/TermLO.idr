@@ -12,9 +12,8 @@ import Lin.TermLO
 
 %default total
 
--- TODO intermediate usages are kept for opeRefl, this can be mitigated by using a nat measure instead
+-- TODO intermediate usages are kept relevant for opeRefl
 -- this also propagates to neu/valConsumption and neu/val2Sp
--- see https://github.com/idris-lang/Idris2/pull/598
 mutual
   public export
   data Val : {0 ctx : Ctx Ty} -> Usages ctx -> Val -> Ty -> Usages ctx -> Type where
@@ -92,8 +91,8 @@ export
 notArg : Neu g n (a~>b) d -> Not (Val d m a s) -> Not (Neu g (App n m) c s)
 notArg n nv (App t u) =
   let (prft, prfc) = neuUniq n t in
-    case (fst $ impInj prft, prfc) of
-      (Refl, Refl) => nv u
+  case (fst $ impInj prft, prfc) of
+    (Refl, Refl) => nv u
 
 export
 notSwitch : Neu g n a d -> Not (b = a) -> Not (Val g (Emb n) b d)

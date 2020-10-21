@@ -14,7 +14,8 @@ import Lin.TyCheck.TermLO
 mutual
   public export
   data NotVal : {0 ctx : Ctx Ty} -> Usages ctx -> Val -> Ty -> Type where
-    NotLamT  : {t : Ty} -> NotBi t Imp             -> NotVal g (Lam s v)  t
+    NotLamT  : {t : Ty} ->
+               NotBi t Imp                         -> NotVal g (Lam s v)  t
     NotLamFr : {s : String} ->
                Val (Fr (s,a)::g) v b (Fr (s,a)::d) -> NotVal g (Lam s v) (a~>b)
     NotLam   : NotVal (Fr (s,a)::g) v b            -> NotVal g (Lam s v) (a~>b)
@@ -22,11 +23,12 @@ mutual
     NotTTT : {t : Ty} -> Not (t=U) -> NotVal g TT t
 
     NotLetT  : NotNeu g n                  -> NotVal g (LetT n v) t
-    NotLetTT : {q : Ty} -> {0 d : Usages ctx} ->
+    NotLetTT : {q : Ty} -> --{0 d : Usages ctx} ->
                Neu g n q d -> Not (q=U)    -> NotVal g (LetT n v) t
     NotLetTC : Neu g n U d -> NotVal d v t -> NotVal g (LetT n v) t
 
-    NotPairT : {t : Ty} -> NotBi t Prod    -> NotVal g (Pair l r)  t
+    NotPairT : {t : Ty} ->
+               NotBi t Prod                -> NotVal g (Pair l r)  t
     NotPairL : NotVal g l a                -> NotVal g (Pair l r) (Prod a b)
     NotPairR : Val g l a d -> NotVal d r b -> NotVal g (Pair l r) (Prod a b)
 
@@ -35,12 +37,12 @@ mutual
                  Neu g n (Prod a b) d -> Val (Fr (y,b)::Fr (x,a)::d) v t (St (y,b)::Fr (x,a)::s) -> NotVal g (LetP n x y v) t
     NotLetPFrR : {y : String} ->
                  Neu g n (Prod a b) d -> Val (Fr (y,b)::Fr (x,a)::d) v t (Fr (y,b)::w::s)        -> NotVal g (LetP n x y v) t
-    NotLetPT   : {q : Ty} -> {0 d : Usages ctx} ->
+    NotLetPT   : {q : Ty} ->
                  Neu g n q d -> NotBi q Prod                                                     -> NotVal g (LetP n x y v) t
     NotLetPC   : Neu g n (Prod a b) d -> NotVal (Fr (y,b)::Fr (x,a)::d) v t                      -> NotVal g (LetP n x y v) t
 
     NotEmb  : NotNeu g m                 -> NotVal g (Emb m) a
-    NotEmbQ : {a, b : Ty} -> {0 d : Usages ctx} ->
+    NotEmbQ : {a, b : Ty} ->
               Neu g m a d -> Not (a = b) -> NotVal g (Emb m) b
 
   public export
@@ -48,7 +50,7 @@ mutual
     NotVar    : NotInCtxLO g s -> NotNeu g (Var s)
 
     NotAppF   : NotNeu g l                       -> NotNeu g (App l m)
-    NotAppFT  : {q : Ty} -> {0 d : Usages ctx} ->
+    NotAppFT  : {q : Ty} ->
                 Neu g l q d -> NotBi q Imp       -> NotNeu g (App l m)
     NotAppA   : Neu g l (a~>b) d -> NotVal d m a -> NotNeu g (App l m)
 

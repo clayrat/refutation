@@ -14,10 +14,12 @@ data OPE : {0 l : List t} -> Usages l -> Usages l -> Type where
   Skip : OPE g d -> OPE (a::g) (a::d)
   Cons : {0 g, d : Usages l} -> (x : t) -> OPE g d -> OPE (Fr x::g) (St x::d)
 
+-- TODO use a nat measure instead of keeping g relevant
+-- see https://github.com/idris-lang/Idris2/pull/598
 export
 opeRefl : (g : Usages l) -> OPE g g
 opeRefl []      = Nil
-opeRefl (u::us) = Skip $ opeRefl us
+opeRefl (_::us) = Skip $ opeRefl us
 
 export
 opeTrans : OPE g d -> OPE d s -> OPE g s

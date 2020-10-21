@@ -26,7 +26,7 @@ Uninhabited (InCtxLO (St (y,b)::g) x a (Fr (y,b)::d)) where
   uninhabited (There _ _) impossible
 
 export
-inCtxLOConsumption : {s : String} -> {a : t} -> {g : Usages l} -> InCtxLO g s a d -> OPE g d
+inCtxLOConsumption : {g : Usages l} -> {s : String} -> {a : t} -> InCtxLO g s a d -> OPE g d
 inCtxLOConsumption {g=Fr (s,a)::g}  Here       = Cons (s,a) $ opeRefl g
 inCtxLOConsumption                 (There _ i) = Skip $ inCtxLOConsumption i
 
@@ -60,7 +60,8 @@ nowhereLOS neq ctra ((Fr (y,b)::d)**a**el)        = uninhabited el
 nowhereLOS neq ctra ((St (y,b)::d)**a**There n i) = ctra (d**a**i)
 
 export
-lookupLO : {0 ctx : Ctx t} -> (g : Usages ctx) -> (x : String) -> Dec (d ** a ** InCtxLO g x a d)
+lookupLO : {0 ctx : Ctx t} ->
+           (g : Usages ctx) -> (x : String) -> Dec (d ** a ** InCtxLO g x a d)
 lookupLO []            x = No $ \(_**_**e) => uninhabited e
 lookupLO (Fr (y,b)::g) x with (decEq x y)
   lookupLO (Fr (y,b)::g) y | Yes Refl = Yes (St (y,b)::g**b**Here)
@@ -74,7 +75,8 @@ lookupLO (St (y,b)::g) x with (decEq x y)
     lookupLO (St (y,b)::g) x | No ctra | No ctra2 = No $ nowhereLOS ctra ctra2
 
 export
-lookupLOE : {0 ctx : Ctx t} -> (g : Usages ctx) -> (x : String) -> Either (NotInCtxLO g x) (d ** a ** InCtxLO g x a d)
+lookupLOE : {0 ctx : Ctx t} ->
+            (g : Usages ctx) -> (x : String) -> Either (NotInCtxLO g x) (d ** a ** InCtxLO g x a d)
 lookupLOE []         x = Left NNil
 lookupLOE (Fr (y,b)::g) x with (decEq x y)
   lookupLOE (Fr (y,b)::g) y | Yes Refl = Right (St (y,b)::g**b**Here)
@@ -96,15 +98,18 @@ inCtxLOUniq (There {u} _ i1) (There _ i2)   = let (prft, prfc) = inCtxLOUniq i1 
                                               (prft, cong (u::) prfc)
 
 public export
-sndU : {0 c : (String, t)} -> Usage c -> Usage (snd c)
+sndU : {0 c : (String, t)} ->
+       Usage c -> Usage (snd c)
 sndU (Fr (_,a)) = Fr a
 sndU (St (_,a)) = St a
 
 public export
-eraseCtxLO : {0 ctx : Ctx t} -> Usages ctx -> Usages (eraseCtx ctx)
+eraseCtxLO : {0 ctx : Ctx t} ->
+             Usages ctx -> Usages (eraseCtx ctx)
 eraseCtxLO = mapTransport (sndU {t})
 
 public export
-eraseInCtxLO : {0 ctx : Ctx t} -> {0 g, d : Usages ctx} -> InCtxLO g s a d -> ElemU (eraseCtxLO g) a (eraseCtxLO d)
+eraseInCtxLO : {0 ctx : Ctx t} -> {0 g, d : Usages ctx} ->
+               InCtxLO g s a d -> ElemU (eraseCtxLO g) a (eraseCtxLO d)
 eraseInCtxLO  Here       = HereU
 eraseInCtxLO (There _ i) = ThereU $ eraseInCtxLO i
