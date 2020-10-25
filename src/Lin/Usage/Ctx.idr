@@ -76,18 +76,18 @@ lookupLO (St (y,b)::g) x with (decEq x y)
 
 export
 lookupLOE : {0 ctx : Ctx t} ->
-            (g : Usages ctx) -> (x : String) -> Either (NotInCtxLO g x) (d ** a ** InCtxLO g x a d)
-lookupLOE []         x = Left NNil
+            (g : Usages ctx) -> (x : String) -> (d ** Either (NotInCtxLO g x) (a ** InCtxLO g x a d))
+lookupLOE []         x = ([] ** Left NNil)
 lookupLOE (Fr (y,b)::g) x with (decEq x y)
-  lookupLOE (Fr (y,b)::g) y | Yes Refl = Right (St (y,b)::g**b**Here)
+  lookupLOE (Fr (y,b)::g) y | Yes Refl = (St (y,b)::g**Right (b**Here))
   lookupLOE (Fr (y,b)::g) x | No ctra with (lookupLOE g x)
-    lookupLOE (Fr (y,b)::g) x | No ctra | Right (d**a**el) = Right (Fr (y,b)::d**a**There ctra el)
-    lookupLOE (Fr (y,b)::g) x | No ctra | Left ctra2 = Left $ NCons ctra ctra2
+    lookupLOE (Fr (y,b)::g) x | No ctra | (d**Right (a**el)) = (Fr (y,b)::d**Right (a**There ctra el))
+    lookupLOE (Fr (y,b)::g) x | No ctra | (d**Left ctra2) = (Fr (y,b)::d**Left $ NCons ctra ctra2)
 lookupLOE (St (y,b)::g) x with (decEq x y)
-  lookupLOE (St (y,b)::g) y | Yes Refl = Left NUsed
+  lookupLOE (St (y,b)::g) y | Yes Refl = (St (y,b)::g ** Left NUsed)
   lookupLOE (St (y,b)::g) x | No ctra with (lookupLOE g x)
-    lookupLOE (St (y,b)::g) x | No ctra | Right (d**a**el) = Right (St (y,b)::d**a**There ctra el)
-    lookupLOE (St (y,b)::g) x | No ctra | Left ctra2 = Left $ NCons ctra ctra2
+    lookupLOE (St (y,b)::g) x | No ctra | (d**Right (a**el)) = (St (y,b)::d**Right (a**There ctra el))
+    lookupLOE (St (y,b)::g) x | No ctra | (d**Left ctra2)    = (St (y,b)::d**Left $ NCons ctra ctra2)
 
 export
 inCtxLOUniq : InCtxLO g s a d1 -> InCtxLO g s b d2 -> (a = b, d1 = d2)

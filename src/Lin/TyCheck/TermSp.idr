@@ -13,23 +13,23 @@ import Lin.TyCheck.TermLO
 
 mutual
   public export
-  data Val : List Ty -> Ty -> Type where
-    Lam  : Val (a::g) b -> Val g (a~>b)
-    TT   : Val [] U
-    LetT : Neu l U -> Split g l r -> Val r a -> Val g a
-    Pair : Val l a -> Split g l r -> Val r b -> Val g (Prod a b)
-    LetP : Neu l (Prod a b) -> Split g l r -> Val (b::a::r) c -> Val g c
-    Emb  : Neu g a -> a = b -> Val g b
+  data Val : List Ty -> Val -> Ty -> Type where
+    Lam  : Val (a::g) v b -> Val g (Lam s v) (a~>b)
+    TT   : Val [] TT U
+    LetT : Neu l m U -> Split g l r -> Val r n a -> Val g (LetT m n) a
+    Pair : Val l m a -> Split g l r -> Val r n b -> Val g (Pair m n) (Prod a b)
+    LetP : Neu l m (Prod a b) -> Split g l r -> Val (b::a::r) n c -> Val g (LetP m x y n) c
+    Emb  : Neu g m a -> a = b -> Val g (Emb m) b
 
   public export
-  data Neu : List Ty -> Ty -> Type where
-    Var : Neu [a] a
-    App : Neu l (a~>b) -> Split g l r -> Val r a -> Neu g b
-    Cut : Val g a -> Neu g a
+  data Neu : List Ty -> Neu -> Ty -> Type where
+    Var : Neu [a] (Var s) a
+    App : Neu l m (a~>b) -> Split g l r -> Val r n a -> Neu g (App m n) b
+    Cut : Val g m a -> Neu g (Cut m a) a
 
 mutual
   export
-  val2Sp : {g : Usages l} -> {a : Ty} -> Val g m a d -> (o : OPE g d) -> Val (Builtin.snd <$> used o) a
+  val2Sp : {g : Usages l} -> {a : Ty} -> Val g m a d -> (o : OPE g d) -> Val (Builtin.snd <$> used o) m a
   val2Sp (Lam {s} {a} v) o = Lam $ val2Sp v (Cons (s,a) o)
   val2Sp  TT             o = rewrite usedRefl o in TT
   val2Sp (LetT n v)      o =
@@ -50,7 +50,7 @@ mutual
   val2Sp (Emb v Refl)    o = assert_total $ Emb (neu2Sp v o) Refl
 
   export
-  neu2Sp : {g : Usages l} -> {a : Ty} -> Neu g n a d -> (o : OPE g d) -> Neu (Builtin.snd <$> used o) a
+  neu2Sp : {g : Usages l} -> {a : Ty} -> Neu g n a d -> (o : OPE g d) -> Neu (Builtin.snd <$> used o) n a
   neu2Sp (Var  Here)        (Cons (s,a) o) = rewrite usedRefl o in Var
   neu2Sp (Var (There cp i)) (Skip       o) = neu2Sp (Var i) o
   neu2Sp (Var (There cp i)) (Cons (s,b) o) impossible

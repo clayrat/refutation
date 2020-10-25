@@ -3,7 +3,6 @@ package refutation
 sourcedir = src
 
 modules = Ctx
-        , Parse
 
         , ProdSum.Ty
         , ProdSum.Term
