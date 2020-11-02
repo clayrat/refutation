@@ -31,19 +31,19 @@ inCtxLOConsumption {g=Fr (s,a)::g}  Here       = Cons (s,a) $ opeRefl g
 inCtxLOConsumption                 (There _ i) = Skip $ inCtxLOConsumption i
 
 public export
-data NotInCtxLO : {0 ctx : Ctx t} -> Usages ctx -> String -> Type where
-  NNil  : {x : String} -> NotInCtxLO [] x
-  NUsed : {x : String} -> NotInCtxLO (St (x,a)::g) x
-  NCons : Not (x=y) -> NotInCtxLO {ctx} g x -> NotInCtxLO {ctx=(y,a)::ctx} (u::g) x
+data NotInCtxLO : {0 ctx : Ctx t} -> Usages ctx -> String -> Usages ctx -> Type where
+  NNil  : {x : String}                        -> NotInCtxLO                  []            x []
+  NUsed : {x : String}                        -> NotInCtxLO                  (St (x,a)::g) x (St (x,a)::g)
+  NCons : Not (x=y) -> NotInCtxLO {ctx} g x d -> NotInCtxLO {ctx=(y,a)::ctx} (u       ::g) x (u       ::d)
 
 export
-Show (NotInCtxLO g x) where
+Show (NotInCtxLO g x d) where
   show (NNil {x})  = "Variable " ++ x ++ " not found"
   show (NUsed {x}) = "Variable " ++ x ++ " is already used"
   show (NCons _ n) = show n
 
 export
-notInCtxLO : NotInCtxLO g x -> InCtxLO g x a d -> Void
+notInCtxLO : NotInCtxLO g x d -> InCtxLO g x a d2 -> Void
 notInCtxLO  NNil          ic          = uninhabited ic
 notInCtxLO  NUsed         ic          = uninhabited ic
 notInCtxLO (NCons nn _)   Here        = nn Refl
@@ -76,7 +76,7 @@ lookupLO (St (y,b)::g) x with (decEq x y)
 
 export
 lookupLOE : {0 ctx : Ctx t} ->
-            (g : Usages ctx) -> (x : String) -> (d ** Either (NotInCtxLO g x) (a ** InCtxLO g x a d))
+            (g : Usages ctx) -> (x : String) -> (d ** Either (NotInCtxLO g x d) (a ** InCtxLO g x a d))
 lookupLOE []         x = ([] ** Left NNil)
 lookupLOE (Fr (y,b)::g) x with (decEq x y)
   lookupLOE (Fr (y,b)::g) y | Yes Refl = (St (y,b)::g**Right (b**Here))
