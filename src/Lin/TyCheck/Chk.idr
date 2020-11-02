@@ -46,7 +46,7 @@ mutual
       (s**Left ctra) => (s**Left $ NotLetTC n0 ctra)
     (d**Right (Imp _ _ **n0)) => (d**Left $ NotLetTT n0 uninhabited)
     (d**Right (Prod _ _**n0)) => (d**Left $ NotLetTT n0 uninhabited)
-    (d**Left ctra)               => (d**Left $ NotLetT ctra)
+    (d**Left ctra)            => (d**Left $ NotLetT ctra)
   inherit g (Pair _ _)      U         = (g**Left $ NotPairT uninhabited)
   inherit g (Pair _ _)     (Imp _ _)  = (g**Left $ NotPairT uninhabited)
   inherit g (Pair l r)     (Prod a b) = case inherit g l a of
