@@ -1,6 +1,5 @@
 module ProdSum.Parser
 
-import Control.Monad.Identity
 import Data.String.Parser
 import Data.String.Parser.Expression
 import Parse
