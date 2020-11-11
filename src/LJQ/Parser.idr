@@ -1,12 +1,11 @@
- module LJQ.Parser
+module LJQ.Parser
 
 import Data.String.Parser
 import Data.String.Parser.Expression
 import Parse
+import LJQ.Ty
 
 %default covering
-
-data Ty = A | Imp Ty Ty
 
 -- raw terms
 
@@ -20,7 +19,7 @@ mutual
             | Cut Val Ty
 
   public export
-  data Neu = V Val
+  data Neu = V NeuV
            | GApp String String Val Neu
            | Let String NeuV Neu
 
@@ -69,7 +68,7 @@ mutual
 
   export
   neu : Parser Neu
-  neu = choice [ V <$> val
+  neu = choice [ V <$> neuV
                , gapp
                , lett ]
 
