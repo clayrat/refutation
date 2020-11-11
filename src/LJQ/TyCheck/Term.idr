@@ -23,5 +23,26 @@ mutual
   public export
   data Neu : Ctx Ty -> Neu -> Ty -> Type where
     V    : NeuV g m a -> Neu g (V m) a
-    GApp : InCtx g s (a~>b) -> Val g m a -> Neu ((x,b)::g) n c -> Neu g (GApp x s m n) c
-    Let  : NeuV g m a -> Neu ((x,a)::g) n b -> Neu g (Let x m n) b
+    GApp : {a, b : Ty} ->
+           InCtx g s (a~>b) -> Val g m a -> Neu ((x,b)::g) n c -> Neu g (GApp x s m n) c
+    Let  : {a : Ty} ->
+           NeuV g m a -> Neu ((x,a)::g) n b -> Neu g (Let x m n) b
+
+export
+Uninhabited (Val _ (Lam _ _) A) where
+  uninhabited (Lam _) impossible
+
+export
+neuVUniq : NeuV g n a -> NeuV g n b -> a = b
+neuVUniq (Var i1) (Var i2) = inCtxUniq i1 i2
+neuVUniq (Cut v1) (Cut v2) = Refl
+
+export
+neuUniq : Neu g n c -> Neu g n d -> c = d
+neuUniq (V nv1)         (V nv2)         = neuVUniq nv1 nv2
+neuUniq (GApp el1 _ n1) (GApp el2 _ n2) =
+  case snd $ impInj $ inCtxUniq el1 el2 of
+    Refl => neuUniq n1 n2
+neuUniq (Let nv1 n1)    (Let nv2 n2)    =
+  case neuVUniq nv1 nv2 of
+    Refl => neuUniq n1 n2
