@@ -11,6 +11,9 @@ import LJQ.Parser
 import LJQ.TyCheck.Term
 --import LJQ.TyCheck.NotTerm
 
+
+--import Data.Either
+
 %default total
 
 mutual
@@ -58,3 +61,4 @@ mutual
       Yes prf => Yes $ Emb m (sym prf)
       No ctra => No \(Emb m0 prf) => ctra $ trans (sym prf) (neuVUniq m0 m)
     No ctra    => No \(Emb m0 Refl) => ctra (a ** m0)
+
