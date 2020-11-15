@@ -35,7 +35,7 @@ mutual
   synthV : (g : Ctx Ty) -> (n : NeuV) -> Either (NotNeuV g n) (a ** NeuV g n a)
   synthV g (Var s)   = case lookupE g s of
     Right (a**el) => Right (a**Var el)
-    Left ctra => Left $ NotVar ctra
+    Left ctra     => Left $ NotVar ctra
   synthV g (Cut v t) = case inherit g v t of
     Right u   => Right (t**Cut u)
     Left ctra => Left $ NotCut ctra
