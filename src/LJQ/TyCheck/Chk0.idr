@@ -7,12 +7,7 @@ import Data.String.Parser
 import Ctx
 import LJQ.Ty
 import LJQ.Parser
---import LJQ.Term
 import LJQ.TyCheck.Term
---import LJQ.TyCheck.NotTerm
-
-
---import Data.Either
 
 %default total
 
