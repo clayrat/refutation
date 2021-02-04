@@ -2,7 +2,6 @@ module Lin.Parser
 
 import Data.String.Parser
 import Data.String.Parser.Expression
-import Parse
 import ProdLet.Ty
 
 %default covering
